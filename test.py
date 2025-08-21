@@ -11,9 +11,9 @@ mock_interactions = [
         "attempts": 1,
         "hint_used": False,
         "watched_youtube": False,
-        "notes": "Solved on first try",
         "date_logged": "2025-08-21T15:30:00Z",
-        "topics": ["Array", "Hash Table"]
+        "topics": ["Array", "Hash Table"],
+        "similar_questions": ["3sum"]
     },
     {
         "user_id": "user_001",
@@ -25,9 +25,9 @@ mock_interactions = [
         "attempts": 3,
         "hint_used": True,
         "watched_youtube": True,
-        "notes": "Had trouble with pointers",
         "date_logged": "2025-08-19T10:00:00Z",
-        "topics": ["Linked List", "Recursion"]
+        "topics": ["Linked List", "Recursion"],
+        "similar_questions": []
     },
     {
         "user_id": "user_001",
@@ -39,9 +39,9 @@ mock_interactions = [
         "attempts": 1,
         "hint_used": False,
         "watched_youtube": False,
-        "notes": "Simple stack problem",
         "date_logged": "2025-08-20T14:00:00Z",
-        "topics": ["Stack", "String"]
+        "topics": ["Stack", "String"],
+        "similar_questions": []
     },
     {
         "user_id": "user_001",
@@ -53,9 +53,37 @@ mock_interactions = [
         "attempts": 2,
         "hint_used": False,
         "watched_youtube": True,
-        "notes": "Used sorting technique",
         "date_logged": "2025-08-18T09:30:00Z",
-        "topics": ["Array", "Sorting"]
+        "topics": ["Array", "Sorting"],
+        "similar_questions": []
+    },
+        {
+        "user_id": "user_001",
+        "question_id": "3sum",
+        "title": "3sum",
+        "difficulty": "Medium",
+        "solved": False,
+        "time_spent": 30.0,
+        "attempts": 1,
+        "hint_used": True,
+        "watched_youtube": True,
+        "date_logged": "2025-08-18T09:30:00Z",
+        "topics": ["Array", "Two-Pointers"],
+        "similar_questions": ["two-sum"]
+    },
+        {
+        "user_id": "user_001",
+        "question_id": "regular-expression-matching",
+        "title": "Regular Expression Matching",
+        "difficulty": "Hard",
+        "solved": False,
+        "time_spent": 45.0,
+        "attempts": 2,
+        "hint_used": True,
+        "watched_youtube": True,
+        "date_logged": "2025-08-18T09:30:00Z",
+        "topics": ["String", "Dynamic Programming", "Recursion"],
+        "similar_questions": []
     }
 ]
 
@@ -70,13 +98,17 @@ SET r.solved = $solved,
     r.attempts = $attempts,
     r.hint_used = $hint_used,
     r.watched_youtube = $watched_youtube,
-    r.notes = $notes,
     r.date_logged = datetime($date_logged)
 
 WITH q
 UNWIND $topics AS topic
     MERGE (t:Topic {name: topic})
     MERGE (q)-[:HAS_TOPIC]->(t)
+
+WITH q, $similar_questions AS similar_questions
+UNWIND similar_questions AS similar_question_id
+    MERGE (similar_q:Question {question_id: similar_question_id})
+    MERGE (q)-[:SIMILAR_TO]->(similar_q)
 """
 
 def load_mock_data(driver, interactions):
