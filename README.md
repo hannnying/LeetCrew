@@ -1,4 +1,4 @@
-### Create and Activate Virtual Environment
+## 1. Create and Activate Virtual Environment
 ```bash
 python3 -m venv leetcode_venv
 ```
@@ -7,7 +7,7 @@ python3 -m venv leetcode_venv
 source venv/bin/activate
 ```
 
-### Alfa LeetCode API Setup
+## 2. Alfa LeetCode API Setup
 
 Please follow the official instructions from the [Alfa LeetCode API repository](https://github.com/alfaarghya/alfa-leetcode-api) to set up the project
 
@@ -25,7 +25,7 @@ cd alfa-leetcode-api
 npm install
 ```
 
-## CrewAI Setup
+## 3. CrewAI Setup
 
 Please follow the official instructions from CrewAI (https://docs.crewai.com/en/installation) to set up the project
 
@@ -39,16 +39,41 @@ curl -LsSf https://astral.sh/uv/install.sh | sh
 uv tool install crewai
 ```
 
-## Install other requirements
+## 4. Install Python requirements
 ```bash
 pip install dotenv neo4j pyyaml streamlit
 ```
 
 
-# Running the App
+## 5. Running the App
 
-
-open another terminal and run:
+### 1. Set up environment variables
 ```bash
-streamlit run app.py
+LEETCODE_API_KEY=your_leetcode_api_key
+NEO4J_URI=bolt://localhost:7687
+NEO4J_USER=neo4j
+NEO4J_PASSWORD=your_password
 ```
+
+### 2. Open Neo4j
+Ensure Neo4j is running and connected to the correct database.
+
+### 3. Load mock data
+```bash
+python3 test.py
+```
+
+### 4. Run the Streamlit app:
+```bash
+python3 streamlit run app.py
+```
+
+This will open a local Streamlit web interface.
+
+## 6. App Features (with Mock Data)
+Once the app is running:
+- Recommend Strategy: Click on the "recommend strategy" button to get strategy recommendations based on mock data stored in the Neo4j database.
+
+![Web Interface](images/leetcrew-streamlit.png)
+
+![Recommendation Agent](images/crew-stream.png)
