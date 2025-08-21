@@ -8,7 +8,7 @@ def get_weak_topics(user_id: str) -> str:
     based on hint usage, YouTube views, or failure to solve.
     """
     query = """
-    MATCH (u:User {id: $user_id})-[r:INTERACTED_WITH]->(q:Problem)-[:HAS_TOPIC]->(t:Topic)
+    MATCH (u:User {user_id: $user_id})-[r:INTERACTED_WITH]->(q:Question)-[:HAS_TOPIC]->(t:Topic)
     WHERE r.date_logged >= datetime() - duration({days: 7})
       AND (r.watched_youtube OR r.hint_used OR r.solved = false)
     RETURN t.name AS topic, count(*) AS weakness_signals
@@ -33,9 +33,9 @@ def get_question_recommendations(user_id: str, topics: list) -> list:
     for that user in these topics.
     """
     query = """
-    MATCH (u:User {id: $user_id})
+    MATCH (u:User {user_id: $user_id})
     UNWIND $topics AS topic_name
-    MATCH (q:Problem)-[:HAS_TOPIC]->(t:Topic {name: topic_name})
+    MATCH (q:Question)-[:HAS_TOPIC]->(t:Topic {name: topic_name})
     RETURN q.title AS title, t.name AS topic, q.difficulty AS difficulty
     ORDER BY q.difficulty ASC  // easier questions first
     LIMIT 3

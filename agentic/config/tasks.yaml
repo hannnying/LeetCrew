@@ -9,7 +9,7 @@ analysis_task:
     - 'topics': a list of the 3 topics the user struggled with most recently.
     Example: 
     {
-      "user_id": "abc123",
+      "user_id": "user_001", # Example; actual user_id will come as input dynamically.
       "topics": ["Graphs", "Greedy", "Dynamic Programming"]
     }
   agent: performance_analyst

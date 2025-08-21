@@ -1,31 +1,17 @@
 import os
-from crewai import Agent, Crew, Process, Task
+from crewai import Agent, Crew, LLM, Process, Task
 from crewai.project import CrewBase, agent, crew, task
+from dotenv import load_dotenv
 from agentic.tools import get_question_recommendations, get_weak_topics
-import yaml
+from typing import List
 
-cwd = os.getcwd()
-
-with open(os.path.join(cwd, r"agentic\config\agents_config.yaml"), "r") as f1:
-    agents_config = yaml.safe_load(f1)
-
-with open(os.path.join(cwd, r"agentic\config\tasks_config.yaml"), "r") as f2:
-    tasks_config = yaml.safe_load(f2)
-    print(tasks_config.keys())
+load_dotenv()
+openai_api_key = os.getenv("OPENAI_API_KEY")
 
 @CrewBase
 class LeetCrewAI():
-    def __init__(self):
-            
-        with open(os.path.join(cwd, r"agentic\config\agents_config.yaml"), "r") as f1:
-            agents_config = yaml.safe_load(f1)
+    """Leetcode Crew for analysis of performance on LeetCode questions and recommendations for prctice."""
 
-        with open(os.path.join(cwd, r"agentic\config\tasks_config.yaml"), "r") as f2:
-            tasks_config = yaml.safe_load(f2)
-            print(tasks_config.keys())
-
-        self.agents_config = agents_config
-        self.tasks_config = tasks_config
 
     @agent
     def performance_analyst(self) -> Agent:
@@ -37,6 +23,7 @@ class LeetCrewAI():
 
     @agent
     def strategy_recommender(self) -> Agent:
+        print(self.agents_config)
         return Agent(
             config=self.agents_config['strategy_recommender'],
             verbose=True,
@@ -45,6 +32,7 @@ class LeetCrewAI():
     
     @task
     def analysis_task(self) -> Task:
+        print(self.tasks_config)
         return Task(
             config=self.tasks_config['analysis_task']
         )

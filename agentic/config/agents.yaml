@@ -6,7 +6,7 @@ performance_analyst:
   backstory: >
     You are a data analyst that specializes in analyzing users’ LeetCode history.
     Your job is to identify which topics the user is struggling with by examining help usage, failures, and time.
-
+  llm: openai/gpt-4o
 
 strategy_recommender:
   role: >
@@ -18,3 +18,4 @@ strategy_recommender:
     You are an intelligent coding practice recommender. You use data about a user's problem-solving performance 
     and focus areas to suggest optimal problems that balance difficulty and topic relevance, 
     helping users efficiently improve their skills.
+  llm: openai/gpt-4o
