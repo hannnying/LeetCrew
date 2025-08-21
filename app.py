@@ -8,7 +8,7 @@ import streamlit as st
 
 def main():
     st.title("LeetCode Logger")
-    user_id = st.text_input("User", value="han-ying")
+    user_id = st.text_input("User", value="user_001")
 
     question_slug = st.text_input("LeetCode Question Slug (e.g., two-sum)")
     db = LeetCodeLogger(driver)
