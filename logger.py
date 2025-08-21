@@ -1,12 +1,11 @@
-from datetime import datetime
+from datetime import date
 from neo4j import GraphDatabase
 
-
 class LeetCodeLogger:
-    def __init__(self,  URI, USER, PASSWORD):
-        self.driver = GraphDatabase.driver(URI, auth=(USER, PASSWORD))
+    def __init__(self, driver):
+        self.driver = driver
     
-    def log_interaction(self, user_id, question_data, interaction_data):
+    def log_interaction(self, user_id, question_data, interaction_data, date_logged=date.today()):
         query = """
         MERGE (u:User {user_id: $user_id})
         MERGE (q:Question {question_id: $question_id})
@@ -18,7 +17,6 @@ class LeetCodeLogger:
             r.attempts = $attempts,
             r.hint_used = $hint_used,
             r.watched_youtube = $watched_youtube,
-            r.notes = $notes,
             r.date_logged = datetime($date_logged)
 
         WITH q
@@ -38,8 +36,7 @@ class LeetCodeLogger:
             "attempts": interaction_data["attempts"],
             "hint_used": interaction_data["hint_used"],
             "watched_youtube": interaction_data["watched_youtube"],
-            "notes": interaction_data["notes"],
-            "date_logged": datetime.utcnow().isoformat()
+            "date_logged": date_logged
         }
 
         self.graph.run(query, parameters)

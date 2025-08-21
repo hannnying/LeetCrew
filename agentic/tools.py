@@ -1,8 +1,8 @@
 from crewai.tools import tool
-
+from db import driver
 
 @tool("Get weak topics for a user based on their struggles in the past week")
-def get_weak_topics(driver, user_id: str) -> str:
+def get_weak_topics(user_id: str) -> str:
     """
     Analyzes Neo4j graph data and returns the top 3 weak topics for a given user ID
     based on hint usage, YouTube views, or failure to solve.
@@ -27,7 +27,7 @@ def get_weak_topics(driver, user_id: str) -> str:
 
 
 @tool("Recommend LeetCode questions based on user's weak topics")
-def get_question_recommendations(driver, user_id: str, topics: list) -> list:
+def get_question_recommendations(user_id: str, topics: list) -> list:
     """
     Given a user_id and a list of weak topics, return up to 3 recommended problems
     for that user in these topics.

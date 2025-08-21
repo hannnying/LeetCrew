@@ -1,5 +1,6 @@
 import os
-
+from agentic.crew import LeetCrewAI
+from db import driver
 from dotenv import load_dotenv
 from logger import LeetCodeLogger
 from utils import fetch_question_details
@@ -9,21 +10,14 @@ def main():
     st.title("LeetCode Logger")
     user_id = st.text_input("User", value="han-ying")
 
-    # Authentication, for now use.env
-    URI = os.getenv("URI")
-    USER = os.getenv("USER")
-    PASSWORD = os.getenv("PASSWORD")
-
-    # Initialise LeetCodeLogger
-    db = LeetCodeLogger(URI, USER, PASSWORD)
-
     question_slug = st.text_input("LeetCode Question Slug (e.g., two-sum)")
+    db = LeetCodeLogger(driver)
 
     if question_slug:
         question_data = fetch_question_details(question_slug.lower())
         if question_data:
-            st.success(f"Found: {question_data['title']} ({question_data['difficulty']})")
-            st.write("**Topics:**", ", ".join(question_data["topics"]))
+            st.success(f"Found: {question_data['questionTitle']} ({question_data['difficulty']})")
+            st.write("**Topics:**", map(lambda x: x["slug"], question_data["topicTags"]))
         else:
             st.error("Could not fetch question data. Check the slug.")
 
@@ -42,12 +36,18 @@ def main():
             "hint_used": hint_used,
             "watched_youtube": watched_youtube
         }
-        
+
         db.log_interaction(
             user_id,
             question_data,
             interaction_data
         )
+
+    if st.button("Recommend a Question"):
+        result = LeetCrewAI().crew().kickoff(inputs={"user_id": user_id})
+
+        if result:
+            st.write("**Questions:**", result)
 
 if __name__=="__main__":
     main()
