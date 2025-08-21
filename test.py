@@ -80,7 +80,9 @@ UNWIND $topics AS topic
 """
 
 def load_mock_data(driver, interactions):
-    with driver.session() as session:
+    print(driver)
+
+    with driver.session(database="neo4j") as session:
         for interaction in interactions:
             session.run(query, **interaction)
     print(f"Loaded {len(interactions)} mock interactions.")
