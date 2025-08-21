@@ -1,0 +1,29 @@
+analysis_task:
+  description: >
+    Analyze the user's LeetCode activity from the past 7 days and identify
+    the 3 topics where the user struggles the most. Weakness is defined by hint usage,
+    watching YouTube solutions, or failing to solve the question.
+  expected_output: >
+    A Python dictionary with two fields:
+    - 'user_id': the user's unique identifier
+    - 'topics': a list of the 3 topics the user struggled with most recently.
+    Example: 
+    {
+      "user_id": "abc123",
+      "topics": ["Graphs", "Greedy", "Dynamic Programming"]
+    }
+  agent: performance_analyst
+
+
+recommendation_task:
+  description: >
+    Given a list of weak topics for a user, recommend 3 unsolved LeetCode problems
+    that can help them improve in those areas. Use the topics provided to query the knowledge graph
+    and find relevant problems the user hasn't solved yet. Ensure diversity across topics where possible.
+  expected_output: >
+    A list of 5 recommended problem titles (or IDs) with their corresponding topics.
+    The problems must not have been solved by the user. Prefer easier or similar-difficulty problems
+    if the user has struggled recently.
+    Example:
+    ["two-sum", "palindrome-number", "roman-to-integer"]
+  agent: strategy_recommender
