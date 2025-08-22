@@ -1,6 +1,7 @@
 import requests
 
-LEETCODE_API = "https://alfa-leetcode-api.onrender.com/" # replace with local host
+# LEETCODE_API = "https://alfa-leetcode-api.onrender.com" # replace with local host
+LEETCODE_API = "http://localhost:3000" 
 
 def fetch_question_details(question):
     """Fetch a LeetCode question and its metadata from the hosted API."""
