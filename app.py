@@ -2,9 +2,11 @@ import os
 from agentic.crew import LeetCrewAI
 # from db import driver
 from logger import LeetCodeLogger
-from utils import fetch_question_details
+from utils import fetch_question_details, get_topic_performance_stats
 import streamlit as st
 from datetime import datetime
+import json
+
 
 def main():
     st.title("LeetCode Logger")
@@ -46,10 +48,20 @@ def main():
         )
 
     if st.button("Recommend a Question"):
-        result = LeetCrewAI().crew().kickoff(inputs={"user_id": user_id})
+        print(f"fetching user: {user_id} performance data by topic")
+        user_performance_data = get_topic_performance_stats(user_id)
+        path = os.path.join(os.getcwd(), f"knowledge/{user_id}_topic_stats.json")
+        
+        with open(path, "w") as f:
+            json.dump(user_performance_data, f, indent=2)
+            print(f"{user_id} performanced data stored in {f}.")
+
+        result = LeetCrewAI(user_id=user_id).crew().kickoff()
 
         if result:
             st.write("**Questions:**", result)
+            if os.path.exists(path):
+                os.remove(path)
 
 if __name__=="__main__":
     main()

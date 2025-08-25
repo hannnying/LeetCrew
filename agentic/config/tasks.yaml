@@ -1,19 +1,42 @@
-analysis_task:
+analyze_topic_performance_task:
   description: >
-    Analyze the user's LeetCode activity from the past 7 days and identify
-    the 3 topics where the user struggles the most. Weakness is defined by hint usage,
-    watching YouTube solutions, or failing to solve the question.
+    Analyze raw topic stats to calculate normalized performance metrics such as accuracy,
+    hint usage rate, and YouTube watch rate per topic, expressed as percentages.
   expected_output: >
-    A Python dictionary with two fields:
-    - 'user_id': the user's unique identifier
-    - 'topics': a list of the 3 topics the user struggled with most recently.
-    Example: 
+    A dictionary where each key is a topic name (string), and each value is another dictionary containing the following float percentage metrics for that topic:
+    - accuracy: percentage of questions solved correctly
+    - hints_usage: percentage of questions where hints were used
+    - youtube_watch_rate: percentage of questions where YouTube explanations were watched
+    Example:
     {
-      "user_id": "user_001", # Example; actual user_id will come as input dynamically.
-      "topics": ["Graphs", "Greedy", "Dynamic Programming"]
+      "topic_name": {
+        "accuracy": float,            # Percentage of solved questions
+        "hints_usage": float,         # Percentage of questions where hints were used
+        "youtube_watch_rate": float   # Percentage of questions where YouTube videos were watched
+      },
+      ...
     }
   agent: performance_analyst
 
+
+rank_weak_topics_task:
+  description: >
+    Given analyzed topic performance metrics, compute a combined weakness score for each topic
+    based on accuracy, hint usage, and YouTube watch rates. Return a ranked list of the top N
+    weakest topics with their scores.
+  expected_output: >
+    A list of dictionaries, where each dictionary represents a weak topic and contains:
+    - topic (string): the name of the topic
+    - score (float): the combined weakness score (higher means the topic needs more improvement)
+    [
+      {
+        "topic": "topic_name",
+        "score": float               # Combined weakness score (higher means weaker)
+      },
+      ...
+    ]
+  agent: performance_analyst
+  
 
 recommendation_task:
   description: >
