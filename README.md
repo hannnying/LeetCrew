@@ -44,8 +44,32 @@ uv tool install crewai
 pip install dotenv neo4j pyyaml streamlit
 ```
 
-
 ## 5. Running the App
+
+### 1. Set up environment variables
+```bash
+LEETCODE_API_KEY=your_leetcode_api_key
+NEO4J_URI=bolt://localhost:7687 # or bolt://13.222.208.80:7687 to run in sandbox
+NEO4J_USER=neo4j
+NEO4J_PASSWORD=your_password
+```
+
+### 2. Open Neo4j
+Ensure Neo4j is running and connected to the correct database if not using sandbox.
+
+### 3. Ensure alfa-leetcode-api is running
+```bash
+cd alfa-leetcode-api
+npm run dev
+```
+
+### 4. Run the Streamlit app:
+In another terminal, run:
+```bash
+streamlit run app.py
+```
+
+## 6. Testing the App 
 
 ### 1. Set up environment variables
 ```bash
@@ -77,3 +101,5 @@ Once the app is running:
 ![Web Interface](images/leetcrew-streamlit.png)
 
 ![Recommendation Agent](images/crew-stream.png)
+
+
