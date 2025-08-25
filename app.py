@@ -1,17 +1,18 @@
 import os
 from agentic.crew import LeetCrewAI
-from db import driver
-from dotenv import load_dotenv
+# from db import driver
 from logger import LeetCodeLogger
 from utils import fetch_question_details
 import streamlit as st
+from datetime import datetime
 
 def main():
     st.title("LeetCode Logger")
     user_id = st.text_input("User", value="user_001")
 
     question_slug = st.text_input("LeetCode Question Slug (e.g., two-sum)")
-    db = LeetCodeLogger(driver)
+    db = LeetCodeLogger()
+    print(f"neo4j DB: {db.driver}")
 
     if question_slug:
         question_data = fetch_question_details(question_slug.lower())
@@ -38,9 +39,10 @@ def main():
         }
 
         db.log_interaction(
-            user_id,
-            question_data,
-            interaction_data
+            user_id=user_id,
+            question_data=question_data,
+            interaction_data=interaction_data,
+            timestamp_logged=datetime.now()
         )
 
     if st.button("Recommend a Question"):
