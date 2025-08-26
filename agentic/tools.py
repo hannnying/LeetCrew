@@ -1,5 +1,4 @@
 from crewai.tools import tool
-from db import driver
 
 
 @tool
@@ -100,30 +99,3 @@ def rank_weak_topics(performance_analysis: dict,
     scored_topics.sort(key=lambda x: x["score"], reverse=True)
 
     return scored_topics[:top_k]
-
-
-
-@tool("Recommend LeetCode questions based on user's weak topics")
-def get_question_recommendations(user_id: str, topics: list) -> list:
-    """
-    Given a user_id and a list of weak topics, return up to 3 recommended problems
-    for that user in these topics.
-    """
-    query = """
-    MATCH (u:User {user_id: $user_id})
-    UNWIND $topics AS topic_name
-    MATCH (q:Question)-[:HAS_TOPIC]->(t:Topic {name: topic_name})
-    RETURN q.title AS title, t.name AS topic, q.difficulty AS difficulty
-    ORDER BY q.difficulty ASC  // easier questions first
-    LIMIT 3
-    """
-
-    try:
-        with driver.session() as session:
-            result = session.run(query, user_id=user_id, topics=topics)
-            recommendations = []
-            for record in result:
-                recommendations.append(record["title"])
-            return recommendations
-    finally:
-        driver.close()

@@ -2,7 +2,7 @@ import os
 from agentic.crew import LeetCrewAI
 # from db import driver
 from logger import LeetCodeLogger
-from utils import fetch_question_details, get_topic_performance_stats
+from utils import fetch_question_details, get_topic_performance_stats, get_unsolved_questions
 import streamlit as st
 from datetime import datetime
 import json
@@ -50,18 +50,27 @@ def main():
     if st.button("Recommend a Question"):
         print(f"fetching user: {user_id} performance data by topic")
         user_performance_data = get_topic_performance_stats(user_id)
-        path = os.path.join(os.getcwd(), f"knowledge/{user_id}_topic_stats.json")
+        performance_path = os.path.join(os.getcwd(), f"knowledge/{user_id}_topic_stats.json")
         
-        with open(path, "w") as f:
+        with open(performance_path, "w") as f:
             json.dump(user_performance_data, f, indent=2)
             print(f"{user_id} performanced data stored in {f}.")
+
+        print(f"fetching user: {user_id} unsolved questions")
+        unsolved_questions = get_unsolved_questions(user_id)
+        unsolved_path = os.path.join(os.getcwd(), f"knowledge/{user_id}_unsolved_questions.json")
+
+        with open(unsolved_path, "w") as f:
+            json.dump(unsolved_questions, f, indent=2)
+            print(f"{user_id} unsolved questions data stored in {f}.")
 
         result = LeetCrewAI(user_id=user_id).crew().kickoff()
 
         if result:
             st.write("**Questions:**", result)
-            if os.path.exists(path):
-                os.remove(path)
+            for path in [performance_path, unsolved_path]:
+                if os.path.exists(path):
+                    os.remove(path)
 
 if __name__=="__main__":
     main()

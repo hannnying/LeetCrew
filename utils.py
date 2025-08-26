@@ -69,3 +69,27 @@ def get_topic_performance_stats(user_id: str) -> dict:
             return topic_stats
     finally:
         driver.close()
+
+
+def get_unsolved_questions(user_id: str) -> dict:
+    query = """
+    MATCH (q:Question)-[:HAS_TOPIC]->(t:Topic)
+    WHERE NOT EXISTS {
+    MATCH (:User {user_id: $user_id})-[i:INTERACTED_WITH]->(q)
+    WHERE i.solved = true
+    }
+    RETURN q.question_id AS question_id, q.difficulty AS difficulty, collect(t.name) AS topics
+    """
+    try:
+        with driver.session() as session:
+            result = session.run(query, user_id=user_id)
+            unsolved_questions = {}
+            for record in result:
+                question = record["question_id"]
+                unsolved_questions[question] = {
+                    "difficulty": record["difficulty"],
+                    "topics": record["topics"]
+                }
+            return unsolved_questions
+    finally:
+        driver.close()

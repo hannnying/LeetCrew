@@ -38,15 +38,27 @@ rank_weak_topics_task:
   agent: performance_analyst
   
 
-recommendation_task:
+select_questions_task:
   description: >
-    Given a list of weak topics for a user, recommend 3 unsolved LeetCode problems
-    that can help them improve in those areas. Use the topics provided to query the knowledge graph
-    and find relevant problems the user hasn't solved yet. Ensure diversity across topics where possible.
+    You are provided with two pieces of information:
+    1. A list of weak topics that the user struggles with.
+    2. A JSON knowledge base containing questions the user has not solved, along with their topics and difficulty.
+
+    Your task is to select questions that are most relevant to the user's weak areas. 
+    Only choose questions that have at least one topic overlapping with the weak topics list.
+    Return a list of matching question slugs with associated metadata.
   expected_output: >
-    A list of 5 recommended problem titles (or IDs) with their corresponding topics.
-    The problems must not have been solved by the user. Prefer easier or similar-difficulty problems
-    if the user has struggled recently.
+    A list of dictionaries, each containing the following fields:
+    - question_id: the question identifier
+    - difficulty: the difficulty level of the question
+    - topics: a list of topics associated with the question
     Example:
-    ["two-sum", "palindrome-number", "roman-to-integer"]
-  agent: strategy_recommender
+    [
+      {
+        "slug": "two-sum",
+        "topics": ["Array", "Hash Table"],
+        "difficulty": "Easy"
+      },
+      ...
+    ]
+  agent: question_finder
