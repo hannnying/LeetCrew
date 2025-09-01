@@ -71,6 +71,31 @@ def get_topic_performance_stats(user_id: str) -> dict:
         driver.close()
 
 
+def get_difficulty_stats(user_id: str) -> dict:
+    query = """
+    MATCH (u:User {id: $user_id})-[i:INTERACTED_WITH]->(q:Question)
+    WITH q.difficulty AS difficulty,
+        COUNT(i) AS attempted,
+        SUM(CASE WHEN i.solved = true THEN 1 ELSE 0 END) AS solved
+    RETURN difficulty, attempted, solved
+    """
+
+    try:
+        with driver.session() as session:
+            result = session.run(query, user_id=user_id)
+            difficulty_stats = {}
+            for record in result:
+                level = record["difficulty"]
+                difficulty_stats[level] = {
+                    "count": record["attempted"],
+                    "solved": record["sovlved"]
+                }
+            return difficulty_stats
+    finally:
+        driver.close()
+
+
+
 def get_unsolved_questions(user_id: str) -> dict:
     query = """
     MATCH (q:Question)-[:HAS_TOPIC]->(t:Topic)

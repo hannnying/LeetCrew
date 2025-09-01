@@ -19,7 +19,7 @@ analyze_topic_performance_task:
   agent: performance_analyst
 
 
-rank_weak_topics_task:
+rank_topics_task:
   description: >
     Given analyzed topic performance metrics, compute a combined weakness score for each topic
     based on accuracy, hint usage, and YouTube watch rates. Return a ranked list of the top N
@@ -62,3 +62,27 @@ select_questions_task:
       ...
     ]
   agent: question_finder
+
+
+scoring_task:
+    description: >
+      Score and rank candidate LeetCode questions for a user based on their topic weaknesses 
+      and difficulty performance. The agent evaluates how well questions match the user's needs.
+
+      - If the user can only solve medium questions, do not recommend any harder than medium.
+      - Questions that match more weak topics are considered more important and should be ranked higher.
+    expected_output: >
+      A list of dictionaries, each containing the following fields:
+      - question_id: the question identifier
+      - difficulty: the difficulty level of the question
+      - topics: a list of topics associated with the question
+      Example:
+      [
+        {
+          "slug": "two-sum",
+          "topics": ["Array", "Hash Table"],
+          "difficulty": "Easy"
+        },
+        ...
+      ]
+    agent: scoring_agent

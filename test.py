@@ -1,7 +1,7 @@
 from db import driver
 
-mock_interactions = [
-     {
+mock_interactions = mock_interactions = [
+    {
         "user_id": "user_001",
         "question_id": "two-sum",
         "title": "Two Sum",
@@ -13,7 +13,7 @@ mock_interactions = [
         "watched_youtube": False,
         "date_logged": "2025-08-21T15:30:00Z",
         "topics": ["Array", "Hash Table"],
-        "similar_questions": ["3sum"]
+        "similar_questions": ["3sum", "four-sum", "subarray-sum-equals-k"]
     },
     {
         "user_id": "user_001",
@@ -27,7 +27,7 @@ mock_interactions = [
         "watched_youtube": True,
         "date_logged": "2025-08-19T10:00:00Z",
         "topics": ["Linked List", "Recursion"],
-        "similar_questions": []
+        "similar_questions": ["swap-nodes-in-pairs", "linked-list-cycle"]
     },
     {
         "user_id": "user_001",
@@ -41,7 +41,7 @@ mock_interactions = [
         "watched_youtube": False,
         "date_logged": "2025-08-20T14:00:00Z",
         "topics": ["Stack", "String"],
-        "similar_questions": []
+        "similar_questions": ["min-remove-to-make-valid-parentheses", "generate-parentheses"]
     },
     {
         "user_id": "user_001",
@@ -55,9 +55,9 @@ mock_interactions = [
         "watched_youtube": True,
         "date_logged": "2025-08-18T09:30:00Z",
         "topics": ["Array", "Sorting"],
-        "similar_questions": []
+        "similar_questions": ["insert-interval", "interval-list-intersections"]
     },
-        {
+    {
         "user_id": "user_001",
         "question_id": "3sum",
         "title": "3sum",
@@ -69,9 +69,9 @@ mock_interactions = [
         "watched_youtube": True,
         "date_logged": "2025-08-18T09:30:00Z",
         "topics": ["Array", "Two-Pointers"],
-        "similar_questions": ["two-sum"]
+        "similar_questions": ["two-sum", "4sum", "3sum-closest"]
     },
-        {
+    {
         "user_id": "user_001",
         "question_id": "regular-expression-matching",
         "title": "Regular Expression Matching",
@@ -83,9 +83,10 @@ mock_interactions = [
         "watched_youtube": True,
         "date_logged": "2025-08-18T09:30:00Z",
         "topics": ["String", "Dynamic Programming", "Recursion"],
-        "similar_questions": []
+        "similar_questions": ["wildcard-matching", "edit-distance"]
     }
 ]
+
 
 query = """
 MERGE (u:User {user_id: $user_id})

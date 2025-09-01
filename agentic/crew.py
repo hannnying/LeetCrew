@@ -39,9 +39,9 @@ class LeetCrewAI():
 
 
     @task
-    def rank_weak_topics_task(self) -> Task:
+    def rank_topics_task(self) -> Task:
         return Task(
-            config=self.tasks_config['rank_weak_topics_task'],
+            config=self.tasks_config['rank_topics_task'],
             context=[self.analyze_topic_performance_task()]
         )
         
@@ -62,14 +62,37 @@ class LeetCrewAI():
     def select_questions_task(self) -> Task:
         return Task(
             config=self.tasks_config["select_questions_task"],
-            context=[self.rank_weak_topics_task()]
+            context=[self.rank_topics_task()]
         )
     
     
+    @agent
+    def scoring_agent(self) -> Agent:
+        user_difficulty_data = JSONKnowledgeSource(
+            file_paths=[f"{self.user_id}_difficulty_stats.json"]
+        )
+        user_performance_data = JSONKnowledgeSource(
+            file_paths=[f"{self.user_id}_topic_stats.json"]
+        )    
+        return Agent(
+            config=self.agents_config["scoring_agent"],
+            verbose=True,
+            knowledge_sources=[user_difficulty_data, user_performance_data]
+        )
+    
+    
+    @task
+    def scoring_task(self) -> Task:
+        return Task(
+            config=self.tasks_config["scoring_task"],
+            context=[self.select_questions_task()]
+        )
+
+
     @crew
     def crew(self) -> Crew:
         return Crew(
-            agents=[self.performance_analyst(), self.question_finder()],
-            tasks=[self.analyze_topic_performance_task(), self.rank_weak_topics_task(), self.select_questions_task()],
+            agents=[self.performance_analyst(), self.question_finder(), self.scoring_agent()],
+            tasks=[self.analyze_topic_performance_task(), self.rank_topics_task(), self.select_questions_task(), self.scoring_task()],
             process=Process.sequential
         )
