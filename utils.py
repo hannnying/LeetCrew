@@ -17,6 +17,20 @@ def fetch_question_details(question):
     except requests.RequestException as e:
         print(f"Error fetching problems: {e}")
         return None
+
+
+def fetch_all_questions(limit):
+    """Fetch LeetCode questions and its metadata from the hosted API."""
+    url = f"{LEETCODE_API}/problems?limit={limit}"
+    try:
+        response = requests.get(url)
+        response.raise_for_status()
+        data = response.json()
+        return data 
+    except requests.RequestException as e:
+        print(f"Error fetching problems: {e}")
+        return None
+
     
 
 def get_topic_performance_stats(user_id: str) -> dict:
