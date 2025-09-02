@@ -72,17 +72,13 @@ scoring_task:
       - If the user can only solve medium questions, do not recommend any harder than medium.
       - Questions that match more weak topics are considered more important and should be ranked higher.
     expected_output: >
-      A list of dictionaries, each containing the following fields:
-      - question_id: the question identifier
-      - difficulty: the difficulty level of the question
-      - topics: a list of topics associated with the question
+      A JSON list of recommended questions with fields: slug, topics, difficulty.
       Example:
       [
         {
           "slug": "two-sum",
           "topics": ["Array", "Hash Table"],
           "difficulty": "Easy"
-        },
-        ...
+        }
       ]
     agent: scoring_agent

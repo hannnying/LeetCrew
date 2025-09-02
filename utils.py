@@ -1,5 +1,6 @@
 import requests
 from db import driver
+import datetime
 
 
 # LEETCODE_API = "https://alfa-leetcode-api.onrender.com" # replace with local host
@@ -118,3 +119,10 @@ def get_unsolved_questions(user_id: str) -> dict:
             return unsolved_questions
     finally:
         driver.close()
+
+
+def serialize_datetime(obj):
+    """Serialize datetime objects"""
+    if isinstance(obj, datetime.datetime):
+        return obj.isoformat()
+    raise TypeError("Type not serializable")

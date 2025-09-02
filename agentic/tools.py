@@ -61,7 +61,7 @@ def analyse_topic_performance(performance_stats: dict) -> dict:
 @tool
 def rank_weak_topics(performance_analysis: dict, 
                      weights: dict = None,
-                     top_k: int = 3) -> list:
+                     top_k: int = 5) -> list:
     """
     Rank topics by combined weakness score based on accuracy, hints usage, and youtube watch rate.
 

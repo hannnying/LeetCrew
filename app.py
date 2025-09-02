@@ -2,7 +2,7 @@ import os
 from agentic.crew import LeetCrewAI
 # from db import driver
 from logger import LeetCodeLogger
-from utils import fetch_question_details, get_difficulty_stats, get_topic_performance_stats, get_unsolved_questions
+from utils import fetch_question_details, get_difficulty_stats, get_topic_performance_stats, get_unsolved_questions, serialize_datetime
 import streamlit as st
 from datetime import datetime
 import json
@@ -58,9 +58,9 @@ def main():
 
         print(f"fetching user: {user_id} performance data by difficulty")
         difficulty_performance_data = get_difficulty_stats(user_id)
-        performance_path = os.path.join(os.getcwd(), f"knowledge/{user_id}_difficulty_stats.json")
+        difficulty_path = os.path.join(os.getcwd(), f"knowledge/{user_id}_difficulty_stats.json")
         
-        with open(performance_path, "w") as f:
+        with open(difficulty_path, "w") as f:
             json.dump(difficulty_performance_data, f, indent=2)
             print(f"{user_id} difficulty performanced data stored in {f}.")
  
@@ -73,13 +73,45 @@ def main():
             json.dump(unsolved_questions, f, indent=2)
             print(f"{user_id} unsolved questions data stored in {f}.")
 
-        result = LeetCrewAI(user_id=user_id).crew().kickoff()
+        memory_path = os.path.join(os.getcwd(), f"knowledge/{user_id}_past_recommendations.json")
+        # check if memory exists, if not initialise it with an empty dict
+
+
+        if not os.path.exists(memory_path):
+            past_user = False
+            past_recommendations = {}
+        else:
+            with open(memory_path, "r") as f:
+                try:
+                    past_recommendations = json.load(f)
+                except json.JSONDecodeError:
+                    past_recommendations = {}
+            past_user = True
+
+        result = LeetCrewAI(user_id=user_id, past_user=past_user).crew().kickoff()
 
         if result:
             st.write("**Questions:**", result)
-            for path in [performance_path, unsolved_path]:
+            for path in [performance_path, difficulty_path, unsolved_path]:
                 if os.path.exists(path):
                     os.remove(path)
+
+            for q in result["questions"]:
+                print(f"now what is q: {q}, {type(q)}, {len(q)}")
+                question_id = q["slug"]
+                if question_id not in past_recommendations:
+                    past_recommendations[question_id] = {
+                        "timestamp": json.dumps(datetime.now(), default=serialize_datetime),
+                        "count": 1
+                    }
+                else:
+                    past_recommendations[question_id]["timestamp"] = json.dumps(datetime.now(), default=serialize_datetime)
+                    past_recommendations[question_id]["count"] += 1
+            
+            with open(memory_path, "w") as f:
+                json.dump(past_recommendations, f, indent=2)
+                print(f"updated memory on {datetime.now()}")
+                
 
 if __name__=="__main__":
     main()

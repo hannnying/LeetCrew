@@ -7,16 +7,28 @@ from agentic.tools import analyse_topic_performance, rank_weak_topics
 import os
 from typing import List
 import json
+from pydantic import BaseModel
 
 load_dotenv()
 openai_api_key = os.getenv("OPENAI_API_KEY")
+
+class RecommendedQuestion(BaseModel):
+    slug: str
+    topics: List[str]
+    difficulty: str
+
+
+class RecommendedQuestions(BaseModel):
+    questions: List[RecommendedQuestion]
+
 
 @CrewBase
 class LeetCrewAI():
     """Leetcode Crew for analysis of performance on LeetCode questions and recommendations for prctice."""
 
-    def __init__(self, user_id):
+    def __init__(self, user_id, past_user):
         self.user_id = user_id
+        self.past_user = past_user
 
     @agent
     def performance_analyst(self) -> Agent:
@@ -73,11 +85,19 @@ class LeetCrewAI():
         )
         user_performance_data = JSONKnowledgeSource(
             file_paths=[f"{self.user_id}_topic_stats.json"]
-        )    
+        )
+        knowledge = [user_difficulty_data, user_performance_data]
+        
+        if self.past_user:
+            past_recommendations_data = JSONKnowledgeSource(
+                file_paths=[f"{self.user_id}_past_recommendations.json"]
+            )
+            knowledge.append(past_recommendations_data)
+
         return Agent(
             config=self.agents_config["scoring_agent"],
             verbose=True,
-            knowledge_sources=[user_difficulty_data, user_performance_data]
+            knowledge_sources=knowledge
         )
     
     
@@ -85,7 +105,8 @@ class LeetCrewAI():
     def scoring_task(self) -> Task:
         return Task(
             config=self.tasks_config["scoring_task"],
-            context=[self.select_questions_task()]
+            context=[self.select_questions_task()],
+            output_json=RecommendedQuestions
         )
 
 
@@ -94,5 +115,6 @@ class LeetCrewAI():
         return Crew(
             agents=[self.performance_analyst(), self.question_finder(), self.scoring_agent()],
             tasks=[self.analyze_topic_performance_task(), self.rank_topics_task(), self.select_questions_task(), self.scoring_task()],
-            process=Process.sequential
+            process=Process.sequential,
+            memory=True
         )
