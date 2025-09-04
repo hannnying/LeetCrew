@@ -1,70 +1,73 @@
-analyze_topic_performance_task:
-  description: >
-    Analyze raw topic stats to calculate normalized performance metrics such as accuracy,
-    hint usage rate, and YouTube watch rate per topic, expressed as percentages.
-  expected_output: >
-    A dictionary where each key is a topic name (string), and each value is another dictionary containing the following float percentage metrics for that topic:
-    - accuracy: percentage of questions solved correctly
-    - hints_usage: percentage of questions where hints were used
-    - youtube_watch_rate: percentage of questions where YouTube explanations were watched
-    Example:
-    {
-      "topic_name": {
-        "accuracy": float,            # Percentage of solved questions
-        "hints_usage": float,         # Percentage of questions where hints were used
-        "youtube_watch_rate": float   # Percentage of questions where YouTube videos were watched
-      },
-      ...
-    }
-  agent: performance_analyst
+strategy_selector_crew:
+  select_strategy_task:
+    description: >
+      Analyze the user's performance metrics by topic and their recent activity to determine
+      the best strategy for recommending questions.
+
+      You are provided with two inputs:
+      1. A dictionary where each key is a topic name (string), and each value is another dictionary containing:
+        - count: number of questions attempted in this topic
+        - accuracy: percentage of correct answers (0–100)
+        - hints_usage: percentage of questions where hints were used (0–100)
+        - youtube_watch_rate: percentage of questions where YouTube explanations were watched (0–100)
+
+      2. A JSON list of the most recent 4 questions solved by the user.
+
+      Use this information to decide whether the user should:
+      - Focus on improving weak topics ("improve"), or
+      - Explore less-attempted or unfamiliar topics ("exploration").
+    expected_output: >
+      Return a single string: either "improve" or "exploration".
+      Do not include anything else.
+    agent: strategy_selector
 
 
-rank_topics_task:
-  description: >
-    Given analyzed topic performance metrics, compute a combined weakness score for each topic
-    based on accuracy, hint usage, and YouTube watch rates. Return a ranked list of the top N
-    weakest topics with their scores.
-  expected_output: >
-    A list of dictionaries, where each dictionary represents a weak topic and contains:
-    - topic (string): the name of the topic
-    - score (float): the combined weakness score (higher means the topic needs more improvement)
-    [
-      {
-        "topic": "topic_name",
-        "score": float               # Combined weakness score (higher means weaker)
-      },
-      ...
-    ]
-  agent: performance_analyst
-  
-
-select_questions_task:
-  description: >
-    You are provided with two pieces of information:
-    1. A list of weak topics that the user struggles with.
-    2. A JSON knowledge base containing questions the user has not solved, along with their topics and difficulty.
-
-    Your task is to select questions that are most relevant to the user's weak areas. 
-    Only choose questions that have at least one topic overlapping with the weak topics list.
-    Return a list of matching question slugs with associated metadata.
-  expected_output: >
-    A list of dictionaries, each containing the following fields:
-    - question_id: the question identifier
-    - difficulty: the difficulty level of the question
-    - topics: a list of topics associated with the question
-    Example:
-    [
-      {
-        "slug": "two-sum",
-        "topics": ["Array", "Hash Table"],
-        "difficulty": "Easy"
-      },
-      ...
-    ]
-  agent: question_finder
+improve_crew:
+  rank_topics_task:
+    description: >
+      Given analyzed topic performance metrics, compute a combined weakness score for each topic
+      based on accuracy, hint usage and YouTube watch rates. Return a ranked list of the top N
+      topics ranked by combined weakness.
+    expected_output: >
+      A list of dictionaries, where each dictionary represents a weak topic and contains:
+      - topic (string): the name of the topic
+      - score (float): the combined weakness score (higher means the topic needs more improvement)
+      [
+        {
+          "topic": "topic_name",
+          "score": float               # Combined weakness score (higher means weaker)
+        },
+        ...
+      ]
+    agent: performance_analyst
 
 
-scoring_task:
+  select_questions_task:
+    description: >
+      1. A list of topics where the user either struggles (weak topics) or has less exposure (less covered topics).
+      2. A JSON knowledge base containing questions the user has not solved, along with their topics and difficulty.
+
+      Your task is to select questions that are most relevant to these topics.
+      Only choose questions that have at least one topic overlapping with the provided topics list.
+      Return a list of matching question slugs with associated metadata.
+    expected_output: >
+      A list of dictionaries, each containing the following fields:
+      - question_id: the question identifier
+      - difficulty: the difficulty level of the question
+      - topics: a list of topics associated with the question
+      Example:
+      [
+        {
+          "slug": "two-sum",
+          "topics": ["Array", "Hash Table"],
+          "difficulty": "Easy"
+        },
+        ...
+      ]
+    agent: question_finder
+
+
+  scoring_task:
     description: >
       Score and rank candidate LeetCode questions for a user based on their topic weaknesses 
       and difficulty performance. The agent evaluates how well questions match the user's needs.
@@ -82,3 +85,47 @@ scoring_task:
         }
       ]
     agent: scoring_agent
+
+
+explore_crew:
+  rank_exploration_topics_task:
+    description: >
+      Given the user's topic performance data including how many questions they attempted,
+      identify the topics the user has covered the least or not at all. Return a ranked
+      list of topics the user should explore more, sorted by least coverage.
+    expected_output: >
+      A list of dictionaries where each dictionary contains:
+        - topic (string): the topic name
+        - score (int): number of questions attempted (lower means less covered)
+      Example:
+      [
+        {"topic": "Graphs", "score": 0},
+        {"topic": "Dynamic Programming", "score": 2},
+        ...
+      ]
+    agent: performance_analyst
+
+
+  select_questions_task:
+    description: >
+      1. A list of topics where the user either struggles (weak topics) or has less exposure (less covered topics).
+      2. A JSON knowledge base containing questions the user has not solved, along with their topics and difficulty.
+
+      Your task is to select questions that are most relevant to these topics.
+      Only choose questions that have at least one topic overlapping with the provided topics list.
+      Return a list of matching question slugs with associated metadata.
+    expected_output: >
+      A list of dictionaries, each containing the following fields:
+      - question_id: the question identifier
+      - difficulty: the difficulty level of the question
+      - topics: a list of topics associated with the question
+      Example:
+      [
+        {
+          "slug": "two-sum",
+          "topics": ["Array", "Hash Table"],
+          "difficulty": "Easy"
+        },
+        ...
+      ]
+    agent: question_finder

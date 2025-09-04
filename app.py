@@ -1,8 +1,17 @@
 import os
-from agentic.crew import LeetCrewAI
-# from db import driver
+from agentic.crew import StrategySelectorCrew, ImproveCrew, ExploreCrew
+from db import driver
 from logger import LeetCodeLogger
-from utils import fetch_question_details, get_difficulty_stats, get_topic_performance_stats, get_unsolved_questions, serialize_datetime
+from utils import (
+    analyse_topic_performance,
+    fetch_question_details,
+    get_difficulty_stats,
+    get_recently_solved, 
+    get_topic_performance_stats,
+    get_unsolved_questions,
+    save_knowledge,
+    serialize_datetime
+)
 import streamlit as st
 from datetime import datetime
 import json
@@ -49,34 +58,28 @@ def main():
 
     if st.button("Recommend a Question"):
         print(f"fetching user: {user_id} performance data by topic")
-        user_performance_data = get_topic_performance_stats(user_id)
-        performance_path = os.path.join(os.getcwd(), f"knowledge/{user_id}_topic_stats.json")
-        
-        with open(performance_path, "w") as f:
-            json.dump(user_performance_data, f, indent=2)
-            print(f"{user_id} performanced data stored in {f}.")
+        user_performance_data = analyse_topic_performance(
+            get_topic_performance_stats(user_id)
+        )
+        performance_path = save_knowledge(user_id, user_performance_data, "topic_stats", "json")
+
+        print(f"fetching recently solved questions by {user_id}")
+        recently_solved = get_recently_solved(user_id)
+        recently_solved_path = save_knowledge(user_id, recently_solved, "recently_solved", "json")
+
+        strategy_result = StrategySelectorCrew(user_id=user_id).crew().kickoff()
 
         print(f"fetching user: {user_id} performance data by difficulty")
         difficulty_performance_data = get_difficulty_stats(user_id)
-        difficulty_path = os.path.join(os.getcwd(), f"knowledge/{user_id}_difficulty_stats.json")
-        
-        with open(difficulty_path, "w") as f:
-            json.dump(difficulty_performance_data, f, indent=2)
-            print(f"{user_id} difficulty performanced data stored in {f}.")
- 
+        difficulty_path = save_knowledge(user_id, difficulty_performance_data, "difficulty_stats", "json")
 
         print(f"fetching user: {user_id} unsolved questions")
         unsolved_questions = get_unsolved_questions(user_id)
-        unsolved_path = os.path.join(os.getcwd(), f"knowledge/{user_id}_unsolved_questions.json")
+        unsolved_path = save_knowledge(user_id, unsolved_questions, "unsolved_questions", "csv")
 
-        with open(unsolved_path, "w") as f:
-            json.dump(unsolved_questions, f, indent=2)
-            print(f"{user_id} unsolved questions data stored in {f}.")
 
         memory_path = os.path.join(os.getcwd(), f"knowledge/{user_id}_past_recommendations.json")
         # check if memory exists, if not initialise it with an empty dict
-
-
         if not os.path.exists(memory_path):
             past_user = False
             past_recommendations = {}
@@ -87,12 +90,17 @@ def main():
                 except json.JSONDecodeError:
                     past_recommendations = {}
             past_user = True
+        
 
-        result = LeetCrewAI(user_id=user_id, past_user=past_user).crew().kickoff()
+        if str(strategy_result) == "improve":
+            result = ImproveCrew(user_id=user_id, past_user=past_user).crew().kickoff()
+        
+        elif str(strategy_result) == "exploration":
+            result = ExploreCrew(user_id=user_id).crew().kickoff()    
 
         if result:
             st.write("**Questions:**", result)
-            for path in [performance_path, difficulty_path, unsolved_path]:
+            for path in [performance_path, recently_solved_path, difficulty_path, unsolved_path]:
                 if os.path.exists(path):
                     os.remove(path)
 

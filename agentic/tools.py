@@ -1,61 +1,8 @@
+from agentic.models import DataFrameWrapper, Question, Questions
 from crewai.tools import tool
+import pandas as pd
+from typing import List
 
-
-@tool
-def analyse_topic_performance(performance_stats: dict) -> dict:
-    """
-    Transforms raw topic statistics into normalized performance metrics and flags improvement needs.
-
-    Args:
-        performance_stats (dict): A dictionary with raw stats per topic as returned by
-            `get_topic_performance_stats`. Expected keys for each topic include:
-            - count (int)
-            - solved (int)
-            - hints_used (int)
-            - watched_youtube (int)
-
-    Returns:
-        dict: A dictionary mapping each topic name to a nested dictionary with:
-            - accuracy (float): Percentage of questions solved correctly.
-            - hints_usage (float): Percentage of questions where hints were used.
-            - youtube_watch_rate (float): Percentage of questions where YouTube explanations were watched.
-    
-    Notes:
-        - Percentages are rounded to two decimal places.
-        - Handles division by zero when count is zero.
-    
-    Example output:
-    {
-        "Dynamic Programming": {
-            "accuracy": 50.0,
-            "hints_usage": 25.0,
-            "youtube_watch_rate": 8.33
-        },
-        ...
-    }
-    """
-    analyzed_performance = {}
-
-    for topic, stats in performance_stats.items():
-        count = stats.get("count", 0)
-
-        if count == 0:
-            # Avoid division by zero by setting all percentages to 0
-            accuracy = 0.0
-            hints_usage = 0.0
-            youtube_watch_rate = 0.0
-        else:
-            accuracy = round(stats.get("solved", 0) / count * 100, 2)
-            hints_usage = round(stats.get("hints_used", 0) / count * 100, 2)
-            youtube_watch_rate = round(stats.get("watched_youtube", 0) / count * 100, 2)
-
-        analyzed_performance[topic] = {
-            "accuracy": accuracy,
-            "hints_usage": hints_usage,
-            "youtube_watch_rate": youtube_watch_rate
-        }
-
-    return analyzed_performance
 
 
 @tool
@@ -99,3 +46,54 @@ def rank_weak_topics(performance_analysis: dict,
     scored_topics.sort(key=lambda x: x["score"], reverse=True)
 
     return scored_topics[:top_k]
+
+
+@tool
+def rank_exploration_topics(performance_analysis: dict, top_k: int = 5) -> list:
+    """
+    Ranks topics that are less explored by the user (e.g. fewer attempts).
+
+    Args:
+        performance_analysis (dict): Output from `analyse_topic_performance`. 
+            Each topic has `count`, `accuracy`, `hints_usage`, `youtube_watch_rate`.
+        top_k (int): Number of least explored topics to return.
+
+    Returns:
+        list: List of top_k least explored topics with their counts.
+        Example: [{"topic": "Graphs", "count": 2}, ...]
+    """
+    if not performance_analysis:
+        return []
+
+    topic_counts = [
+        {"topic": topic, "count": metrics.get("count", 0)}
+        for topic, metrics in performance_analysis.items()
+    ]
+
+    # Sort ascending by attempt count (least explored first)
+    topic_counts.sort(key=lambda x: x["count"])
+
+    return topic_counts[:top_k]
+
+
+@tool
+def filter_unsolved_questions_by_topic(df: DataFrameWrapper, topics: List[str]) -> Questions:
+    """
+    Filters questions by topics (1-hot encoded) and returns only title, topics, difficulty.
+    """
+    # Validate topic columns exist
+    missing = [t for t in topics if t not in df.columns]
+    if missing:
+        raise ValueError(f"Topic columns not found in DataFrame: {missing}")
+
+    # Filter rows where any of the topic columns is 1
+    mask = df[topics].any(axis=1)
+    filtered_df = df[mask]
+
+    # Keep only needed columns (ensure they exist)
+    for col in ["title", "topics", "difficulty"]:
+        if col not in df.columns:
+            raise ValueError(f"Missing required column: '{col}'")
+
+    filtered_df = filtered_df[["title", "topics", "difficulty"]].rename(columns={'title': 'slug'})
+    return [Question(**row) for row in filtered_df.to_dict(orient="records")]
